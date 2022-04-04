@@ -7,5 +7,7 @@ Category: tls
 Example: --egd-file /random/here $URL
 Added: 7.7
 ---
+Deprecated option. Serves no purpose anymore.
+
 Specify the path name to the Entropy Gathering Daemon socket. The socket is
 used to seed the random engine for SSL connections.
