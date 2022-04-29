@@ -150,8 +150,8 @@ set(CURL_LIBS "")
 
 if(ENABLE_ARES)
   set(USE_ARES 1)
-  find_package(CARES REQUIRED)
-  list(APPEND CURL_LIBS ${CARES_LIBRARY})
+  list(APPEND CURL_LIBS ${CARES_LIBRARY} libresolv)
+  include_directories(${CARES_INCLUDE_DIR})
 endif()
 
 include(CurlSymbolHiding)
