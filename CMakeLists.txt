@@ -152,7 +152,7 @@ if(ENABLE_ARES)
   set(USE_ARES 1)
   if(APPLE)
     list(APPEND CURL_LIBS ${CARES_LIBRARY} resolv)
-  else
+  else()
     list(APPEND CURL_LIBS ${CARES_LIBRARY})
   endif()
   include_directories(${CARES_INCLUDE_DIR})
