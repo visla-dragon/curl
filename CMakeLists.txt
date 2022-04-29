@@ -150,7 +150,7 @@ set(CURL_LIBS "")
 
 if(ENABLE_ARES)
   set(USE_ARES 1)
-  list(APPEND CURL_LIBS ${CARES_LIBRARY} libresolv)
+  list(APPEND CURL_LIBS ${CARES_LIBRARY} resolv)
   include_directories(${CARES_INCLUDE_DIR})
 endif()
 
