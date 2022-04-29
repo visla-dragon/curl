@@ -151,9 +151,10 @@ set(CURL_LIBS "")
 if(ENABLE_ARES)
   set(USE_ARES 1)
   if(APPLE)
-  list(APPEND CURL_LIBS ${CARES_LIBRARY} resolv)
+    list(APPEND CURL_LIBS ${CARES_LIBRARY} resolv)
   else
-  list(APPEND CURL_LIBS ${CARES_LIBRARY})
+    list(APPEND CURL_LIBS ${CARES_LIBRARY})
+  endif()
   include_directories(${CARES_INCLUDE_DIR})
 endif()
 
