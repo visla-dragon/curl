@@ -213,17 +213,17 @@ CARES_LIB_DIR  = $(DEVEL_LIB)
 
 !IF "$(WITH_CARES)"=="dll"
 !IF "$(DEBUG)"=="yes"
-CARES_LIBS     = cares_static.lib
+CARES_LIBS     = cares_static.lib iphlpapi.lib
 !ELSE
-CARES_LIBS     = cares_static.lib
+CARES_LIBS     = cares_static.lib iphlpapi.lib
 !ENDIF
 USE_CARES      = true
 CARES          = dll
 !ELSEIF "$(WITH_CARES)"=="static"
 !IF "$(DEBUG)"=="yes"
-CARES_LIBS     = libcaresd.lib
+CARES_LIBS     = cares_static.lib iphlpapi.lib
 !ELSE
-CARES_LIBS     = libcares.lib
+CARES_LIBS     = cares_static.lib iphlpapi.lib
 !ENDIF
 USE_CARES      = true
 CARES          = static
