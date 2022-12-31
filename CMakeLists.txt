@@ -60,7 +60,7 @@
 # to ON or OFF), the symbol detection will be skipped.  If the
 # variable is NOT DEFINED, the symbol detection will be performed.
 
-cmake_minimum_required(VERSION 3.2...3.16 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.7...3.16 FATAL_ERROR)
 
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake;${CMAKE_MODULE_PATH}")
 include(Utilities)
@@ -169,8 +169,12 @@ set(CURL_LIBS "")
 
 if(ENABLE_ARES)
   set(USE_ARES 1)
-  find_package(CARES REQUIRED)
-  list(APPEND CURL_LIBS ${CARES_LIBRARY})
+  if(APPLE)
+    list(APPEND CURL_LIBS ${CARES_LIBRARY} resolv)
+  else()
+    list(APPEND CURL_LIBS ${CARES_LIBRARY})
+  endif()
+  include_directories(${CARES_INCLUDE_DIR})
 endif()
 
 include(CurlSymbolHiding)
@@ -707,24 +711,30 @@ if(WIN32)
   endif()
 endif()
 
-set(HAVE_LIBZ OFF)
-set(USE_ZLIB OFF)
-optional_dependency(ZLIB)
-if(ZLIB_FOUND)
-  set(HAVE_LIBZ ON)
-  set(USE_ZLIB ON)
+# set(HAVE_LIBZ OFF)
+# set(USE_ZLIB OFF)
+# optional_dependency(ZLIB)
+# if(ZLIB_FOUND)
+#   set(HAVE_LIBZ ON)
+#   set(USE_ZLIB ON)
 
-  # Depend on ZLIB via imported targets if supported by the running
-  # version of CMake.  This allows our dependents to get our dependencies
-  # transitively.
-  if(NOT CMAKE_VERSION VERSION_LESS 3.4)
-    list(APPEND CURL_LIBS ZLIB::ZLIB)
-  else()
-    list(APPEND CURL_LIBS ${ZLIB_LIBRARIES})
-    include_directories(${ZLIB_INCLUDE_DIRS})
-  endif()
-  list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
-endif()
+#   # Depend on ZLIB via imported targets if supported by the running
+#   # version of CMake.  This allows our dependents to get our dependencies
+#   # transitively.
+#   if(NOT CMAKE_VERSION VERSION_LESS 3.4)
+#     list(APPEND CURL_LIBS ZLIB::ZLIB)
+#   else()
+#     list(APPEND CURL_LIBS ${ZLIB_LIBRARIES})
+#     include_directories(${ZLIB_INCLUDE_DIRS})
+#   endif()
+#   list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
+# endif()
+
+set(HAVE_LIBZ ON)
+set(USE_ZLIB ON)
+list(APPEND CURL_LIBS ${ZLIB_LIBRARIES})
+include_directories(${ZLIB_INCLUDE_DIRS})
+list(APPEND CMAKE_REQUIRED_INCLUDES ${ZLIB_INCLUDE_DIRS})
 
 option(CURL_BROTLI "Set to ON to enable building curl with brotli support." OFF)
 set(HAVE_BROTLI OFF)
@@ -1092,7 +1102,7 @@ check_symbol_exists(setrlimit      "${CURL_INCLUDES}" HAVE_SETRLIMIT)
 
 if(NOT MSVC OR (MSVC_VERSION GREATER_EQUAL 1900))
   # earlier MSVC compilers had faulty snprintf implementations
-  check_symbol_exists(snprintf       "${CURL_INCLUDES}" HAVE_SNPRINTF)
+  check_symbol_exists(snprintf       "stdio.h" HAVE_SNPRINTF)
 endif()
 check_function_exists(mach_absolute_time HAVE_MACH_ABSOLUTE_TIME)
 check_symbol_exists(inet_ntop      "${CURL_INCLUDES}" HAVE_INET_NTOP)
