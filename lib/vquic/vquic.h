@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -48,6 +48,8 @@ CURLcode Curl_cf_quic_create(struct Curl_cfilter **pcf,
 bool Curl_conn_is_http3(const struct Curl_easy *data,
                         const struct connectdata *conn,
                         int sockindex);
+
+extern struct Curl_cftype Curl_cft_http3;
 
 #else /* ENABLE_QUIC */
 

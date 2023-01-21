@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -44,13 +44,6 @@
 #define ARRAYSIZE(A) (sizeof(A)/sizeof((A)[0]))
 #endif
 
-#define DEBUG_CF 0
-
-#if DEBUG_CF
-#define CF_DEBUGF(x) x
-#else
-#define CF_DEBUGF(x) do { } while(0)
-#endif
 
 void Curl_cf_def_destroy_this(struct Curl_cfilter *cf, struct Curl_easy *data)
 {
@@ -197,7 +190,6 @@ ssize_t Curl_conn_recv(struct Curl_easy *data, int num, char *buf,
                        size_t len, CURLcode *code)
 {
   struct Curl_cfilter *cf;
-  ssize_t nread;
 
   DEBUGASSERT(data);
   DEBUGASSERT(data->conn);
@@ -206,10 +198,7 @@ ssize_t Curl_conn_recv(struct Curl_easy *data, int num, char *buf,
     cf = cf->next;
   }
   if(cf) {
-    nread = cf->cft->do_recv(cf, data, buf, len, code);
-    CF_DEBUGF(infof(data, "Curl_conn_recv(handle=%p, index=%d)"
-              "-> %ld, err=%d", data, num, nread, *code));
-    return nread;
+    return cf->cft->do_recv(cf, data, buf, len, code);
   }
   failf(data, CMSGI(data->conn, num, "recv: no filter connected"));
   *code = CURLE_FAILED_INIT;
@@ -220,7 +209,6 @@ ssize_t Curl_conn_send(struct Curl_easy *data, int num,
                        const void *mem, size_t len, CURLcode *code)
 {
   struct Curl_cfilter *cf;
-  ssize_t nwritten;
 
   DEBUGASSERT(data);
   DEBUGASSERT(data->conn);
@@ -229,10 +217,7 @@ ssize_t Curl_conn_send(struct Curl_easy *data, int num,
     cf = cf->next;
   }
   if(cf) {
-    nwritten = cf->cft->do_send(cf, data, mem, len, code);
-    CF_DEBUGF(infof(data, "Curl_conn_send(handle=%p, index=%d, len=%ld)"
-              " -> %ld, err=%d", data, num, len, nwritten, *code));
-    return nwritten;
+    return cf->cft->do_send(cf, data, mem, len, code);
   }
   failf(data, CMSGI(data->conn, num, "send: no filter connected"));
   DEBUGASSERT(0);
@@ -274,7 +259,7 @@ void Curl_conn_cf_add(struct Curl_easy *data,
   cf->conn = conn;
   cf->sockindex = index;
   conn->cfilter[index] = cf;
-  CF_DEBUGF(infof(data, CFMSG(cf, "added")));
+  DEBUGF(LOG_CF(data, cf, "added"));
 }
 
 void Curl_conn_cf_insert_after(struct Curl_cfilter *cf_at,
@@ -369,26 +354,18 @@ CURLcode Curl_conn_connect(struct Curl_easy *data,
 
   cf = data->conn->cfilter[sockindex];
   DEBUGASSERT(cf);
+  if(!cf)
+    return CURLE_FAILED_INIT;
+
   *done = cf->connected;
   if(!*done) {
-    result = cf->cft->connect (cf, data, blocking, done);
+    result = cf->cft->connect(cf, data, blocking, done);
     if(!result && *done) {
+      Curl_conn_ev_update_info(data, data->conn);
       data->conn->keepalive = Curl_now();
     }
   }
 
-#ifdef DEBUGBUILD
-  if(result) {
-    CF_DEBUGF(infof(data, DMSGI(data, sockindex, "connect()-> %d, done=%d"),
-           result, *done));
-  }
-  else if(!*done) {
-    while(cf->next && !cf->next->connected)
-      cf = cf->next;
-    CF_DEBUGF(infof(data, DMSGI(data, sockindex, "connect()-> waiting for %s"),
-           cf->cft->name));
-  }
-#endif
   return result;
 }
 
@@ -605,7 +582,7 @@ void Curl_conn_ev_update_info(struct Curl_easy *data,
 bool Curl_conn_is_alive(struct Curl_easy *data, struct connectdata *conn)
 {
   struct Curl_cfilter *cf = conn->cfilter[FIRSTSOCKET];
-  return !cf->conn->bits.close && cf && cf->cft->is_alive(cf, data);
+  return cf && !cf->conn->bits.close && cf->cft->is_alive(cf, data);
 }
 
 CURLcode Curl_conn_keep_alive(struct Curl_easy *data,

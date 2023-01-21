@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -1860,6 +1860,15 @@ static CURLMcode multi_runsingle(struct Curl_multi *multi,
     multi_done(data, result, FALSE);
     multistate(data, MSTATE_COMPLETED);
   }
+
+#ifdef DEBUGBUILD
+  if(!multi->warned) {
+    infof(data, "!!! WARNING !!!");
+    infof(data, "This is a debug build of libcurl, "
+          "do not use in production.");
+    multi->warned = true;
+  }
+#endif
 
   do {
     /* A "stream" here is a logical stream if the protocol can handle that

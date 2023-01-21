@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -57,6 +57,8 @@ CURLcode Curl_conn_socks_proxy_add(struct Curl_easy *data,
 
 CURLcode Curl_cf_socks_proxy_insert_after(struct Curl_cfilter *cf_at,
                                           struct Curl_easy *data);
+
+extern struct Curl_cftype Curl_cft_socks_proxy;
 
 #endif /* CURL_DISABLE_PROXY */
 

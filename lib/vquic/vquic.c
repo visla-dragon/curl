@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -32,9 +32,9 @@
 #include "urldata.h"
 #include "dynbuf.h"
 #include "curl_printf.h"
-#include "msh3.h"
-#include "ngtcp2.h"
-#include "quiche.h"
+#include "curl_msh3.h"
+#include "curl_ngtcp2.h"
+#include "curl_quiche.h"
 #include "vquic.h"
 
 #ifdef O_BINARY

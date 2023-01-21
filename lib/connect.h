@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -89,7 +89,7 @@ void Curl_conncontrol(struct connectdata *conn,
 
 /**
  * Create a cfilter for making an "ip" connection to the
- * given address, using paramters from `conn`. The "ip" connection
+ * given address, using parameters from `conn`. The "ip" connection
  * can be a TCP socket, a UDP socket or even a QUIC connection.
  *
  * It MUST use only the supplied `ai` for its connection attempt.
@@ -132,5 +132,7 @@ CURLcode Curl_conn_setup(struct Curl_easy *data,
                          const struct Curl_dns_entry *remotehost,
                          int ssl_mode);
 
+extern struct Curl_cftype Curl_cft_happy_eyeballs;
+extern struct Curl_cftype Curl_cft_setup;
 
 #endif /* HEADER_CURL_CONNECT_H */

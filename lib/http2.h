@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -57,6 +57,8 @@ bool Curl_http2_may_switch(struct Curl_easy *data,
 CURLcode Curl_http2_switch(struct Curl_easy *data,
                            struct connectdata *conn, int sockindex,
                            const char *ptr, size_t nread);
+
+extern struct Curl_cftype Curl_cft_nghttp2;
 
 #else /* USE_NGHTTP2 */
 

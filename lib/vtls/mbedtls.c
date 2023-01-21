@@ -5,8 +5,8 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 2012 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
- * Copyright (C) 2010 - 2011, Hoi-Ho Chan, <hoiho.chan@gmail.com>
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Hoi-Ho Chan, <hoiho.chan@gmail.com>
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -166,8 +166,8 @@ static int bio_cf_write(void *bio, const unsigned char *buf, size_t blen)
 
   DEBUGASSERT(data);
   nwritten = Curl_conn_cf_send(cf->next, data, (char *)buf, blen, &result);
-  /* DEBUGF(infof(data, CFMSG(cf, "bio_cf_out_write(len=%d) -> %d, err=%d"),
-         blen, (int)nwritten, result)); */
+  DEBUGF(LOG_CF(data, cf, "bio_cf_out_write(len=%zu) -> %zd, err=%d",
+                blen, nwritten, result));
   if(nwritten < 0 && CURLE_AGAIN == result) {
     nwritten = MBEDTLS_ERR_SSL_WANT_WRITE;
   }
@@ -188,8 +188,8 @@ static int bio_cf_read(void *bio, unsigned char *buf, size_t blen)
     return 0;
 
   nread = Curl_conn_cf_recv(cf->next, data, (char *)buf, blen, &result);
-  /* DEBUGF(infof(data, CFMSG(cf, "bio_cf_in_read(len=%d) -> %d, err=%d"),
-         blen, (int)nread, result)); */
+  DEBUGF(LOG_CF(data, cf, "bio_cf_in_read(len=%zu) -> %zd, err=%d",
+                blen, nread, result));
   if(nread < 0 && CURLE_AGAIN == result) {
     nread = MBEDTLS_ERR_SSL_WANT_READ;
   }
@@ -650,11 +650,16 @@ mbed_connect_step1(struct Curl_cfilter *cf, struct Curl_easy *data)
 #ifdef HAS_ALPN
   if(cf->conn->bits.tls_enable_alpn) {
     const char **p = &backend->protocols[0];
+    if(data->state.httpwant == CURL_HTTP_VERSION_1_0) {
+      *p++ = ALPN_HTTP_1_0;
+    }
+    else {
 #ifdef USE_HTTP2
-    if(data->state.httpwant >= CURL_HTTP_VERSION_2)
-      *p++ = ALPN_H2;
+      if(data->state.httpwant >= CURL_HTTP_VERSION_2)
+        *p++ = ALPN_H2;
 #endif
-    *p++ = ALPN_HTTP_1_1;
+      *p++ = ALPN_HTTP_1_1;
+    }
     *p = NULL;
     /* this function doesn't clone the protocols array, which is why we need
        to keep it around */

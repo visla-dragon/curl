@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -1221,9 +1221,10 @@ static void socks_cf_get_host(struct Curl_cfilter *cf,
   }
 }
 
-static const struct Curl_cftype cft_socks_proxy = {
+struct Curl_cftype Curl_cft_socks_proxy = {
   "SOCKS-PROXYY",
   CF_TYPE_IP_CONNECT,
+  0,
   socks_proxy_cf_destroy,
   socks_proxy_cf_connect,
   socks_proxy_cf_close,
@@ -1245,7 +1246,7 @@ CURLcode Curl_conn_socks_proxy_add(struct Curl_easy *data,
   struct Curl_cfilter *cf;
   CURLcode result;
 
-  result = Curl_cf_create(&cf, &cft_socks_proxy, NULL);
+  result = Curl_cf_create(&cf, &Curl_cft_socks_proxy, NULL);
   if(!result)
     Curl_conn_cf_add(data, conn, sockindex, cf);
   return result;
@@ -1258,7 +1259,7 @@ CURLcode Curl_cf_socks_proxy_insert_after(struct Curl_cfilter *cf_at,
   CURLcode result;
 
   (void)data;
-  result = Curl_cf_create(&cf, &cft_socks_proxy, NULL);
+  result = Curl_cf_create(&cf, &Curl_cft_socks_proxy, NULL);
   if(!result)
     Curl_conn_cf_insert_after(cf_at, cf);
   return result;

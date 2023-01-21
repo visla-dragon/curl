@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 2020 - 2022, Jacob Hoffman-Andrews,
+ * Copyright (C) Jacob Hoffman-Andrews,
  * <github@hoffman-andrews.com>
  *
  * This software is licensed as described in the file COPYING, which
@@ -161,7 +161,7 @@ cr_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
   io_error = rustls_connection_read_tls(rconn, read_cb, &io_ctx,
                                         &tls_bytes_read);
   if(io_error == EAGAIN || io_error == EWOULDBLOCK) {
-    infof(data, CFMSG(cf, "cr_recv: EAGAIN or EWOULDBLOCK"));
+    DEBUGF(LOG_CF(data, cf, "cr_recv: EAGAIN or EWOULDBLOCK"));
   }
   else if(io_error) {
     char buffer[STRERROR_LEN];
@@ -171,7 +171,7 @@ cr_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
     return -1;
   }
 
-  infof(data, CFMSG(cf, "cr_recv: read %ld TLS bytes"), tls_bytes_read);
+  DEBUGF(LOG_CF(data, cf, "cr_recv: read %ld TLS bytes", tls_bytes_read));
 
   rresult = rustls_connection_process_new_packets(rconn);
   if(rresult != RUSTLS_RESULT_OK) {
@@ -189,8 +189,8 @@ cr_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
       plainlen - plain_bytes_copied,
       &n);
     if(rresult == RUSTLS_RESULT_PLAINTEXT_EMPTY) {
-      infof(data, CFMSG(cf, "cr_recv: got PLAINTEXT_EMPTY. "
-            "will try again later."));
+      DEBUGF(LOG_CF(data, cf, "cr_recv: got PLAINTEXT_EMPTY. "
+                    "will try again later."));
       backend->data_pending = FALSE;
       break;
     }
@@ -207,7 +207,7 @@ cr_recv(struct Curl_cfilter *cf, struct Curl_easy *data,
       break;
     }
     else {
-      infof(data, CFMSG(cf, "cr_recv: got %ld plain bytes"), n);
+      DEBUGF(LOG_CF(data, cf, "cr_recv: got %ld plain bytes", n));
       plain_bytes_copied += n;
     }
   }
@@ -258,7 +258,7 @@ cr_send(struct Curl_cfilter *cf, struct Curl_easy *data,
   DEBUGASSERT(backend);
   rconn = backend->conn;
 
-  infof(data, CFMSG(cf, "cr_send: %ld plain bytes"), plainlen);
+  DEBUGF(LOG_CF(data, cf, "cr_send: %ld plain bytes", plainlen));
 
   if(plainlen > 0) {
     rresult = rustls_connection_write(rconn, plainbuf, plainlen,
@@ -282,8 +282,8 @@ cr_send(struct Curl_cfilter *cf, struct Curl_easy *data,
     io_error = rustls_connection_write_tls(rconn, write_cb, &io_ctx,
                                            &tlswritten);
     if(io_error == EAGAIN || io_error == EWOULDBLOCK) {
-      infof(data, CFMSG(cf, "cr_send: EAGAIN after %ld bytes"),
-            tlswritten_total);
+      DEBUGF(LOG_CF(data, cf, "cr_send: EAGAIN after %zu bytes",
+                    tlswritten_total));
       *err = CURLE_AGAIN;
       return -1;
     }
@@ -299,7 +299,7 @@ cr_send(struct Curl_cfilter *cf, struct Curl_easy *data,
       *err = CURLE_WRITE_ERROR;
       return -1;
     }
-    infof(data, CFMSG(cf, "cr_send: wrote %ld TLS bytes"), tlswritten);
+    DEBUGF(LOG_CF(data, cf, "cr_send: wrote %zu TLS bytes", tlswritten));
     tlswritten_total += tlswritten;
   }
 
@@ -349,22 +349,40 @@ cr_init_backend(struct Curl_cfilter *cf, struct Curl_easy *data,
   char errorbuf[256];
   size_t errorlen;
   int result;
-  rustls_slice_bytes alpn[2] = {
-    { (const uint8_t *)ALPN_HTTP_1_1, ALPN_HTTP_1_1_LENGTH },
-    { (const uint8_t *)ALPN_H2, ALPN_H2_LENGTH },
-  };
 
   DEBUGASSERT(backend);
   rconn = backend->conn;
 
   config_builder = rustls_client_config_builder_new();
+  if(data->state.httpwant == CURL_HTTP_VERSION_1_0) {
+    rustls_slice_bytes alpn[] = {
+      { (const uint8_t *)ALPN_HTTP_1_0, ALPN_HTTP_1_0_LENGTH }
+    };
+    infof(data, VTLS_INFOF_ALPN_OFFER_1STR, ALPN_HTTP_1_0);
+    rustls_client_config_builder_set_alpn_protocols(config_builder, alpn, 1);
+  }
+  else {
+    rustls_slice_bytes alpn[2] = {
+      { (const uint8_t *)ALPN_HTTP_1_1, ALPN_HTTP_1_1_LENGTH },
+      { (const uint8_t *)ALPN_H2, ALPN_H2_LENGTH },
+    };
 #ifdef USE_HTTP2
-  infof(data, VTLS_INFOF_ALPN_OFFER_1STR, ALPN_H2);
-  rustls_client_config_builder_set_alpn_protocols(config_builder, alpn, 2);
-#else
-  rustls_client_config_builder_set_alpn_protocols(config_builder, alpn, 1);
+    if(data->state.httpwant >= CURL_HTTP_VERSION_2
+#ifndef CURL_DISABLE_PROXY
+       && (!Curl_ssl_cf_is_proxy(cf) || !cf->conn->bits.tunnel_proxy)
 #endif
-  infof(data, VTLS_INFOF_ALPN_OFFER_1STR, ALPN_HTTP_1_1);
+      ) {
+      infof(data, VTLS_INFOF_ALPN_OFFER_1STR, ALPN_HTTP_1_1);
+      infof(data, VTLS_INFOF_ALPN_OFFER_1STR, ALPN_H2);
+      rustls_client_config_builder_set_alpn_protocols(config_builder, alpn, 2);
+    }
+    else
+#endif
+    {
+      infof(data, VTLS_INFOF_ALPN_OFFER_1STR, ALPN_HTTP_1_1);
+      rustls_client_config_builder_set_alpn_protocols(config_builder, alpn, 1);
+    }
+  }
   if(!verifypeer) {
     rustls_client_config_builder_dangerous_set_certificate_verifier(
       config_builder, cr_verify_none);

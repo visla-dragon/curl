@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -69,6 +69,8 @@ CURLsslset Curl_init_sslset_nolock(curl_sslbackend id, const char *name,
 /* see https://www.iana.org/assignments/tls-extensiontype-values/ */
 #define ALPN_HTTP_1_1_LENGTH 8
 #define ALPN_HTTP_1_1 "http/1.1"
+#define ALPN_HTTP_1_0_LENGTH 8
+#define ALPN_HTTP_1_0 "http/1.0"
 #define ALPN_H2_LENGTH 2
 #define ALPN_H2 "h2"
 
@@ -212,6 +214,9 @@ bool Curl_ssl_supports(struct Curl_easy *data, int ssl_option);
  */
 void *Curl_ssl_get_internals(struct Curl_easy *data, int sockindex,
                              CURLINFO info, int n);
+
+extern struct Curl_cftype Curl_cft_ssl;
+extern struct Curl_cftype Curl_cft_ssl_proxy;
 
 #else /* if not USE_SSL */
 

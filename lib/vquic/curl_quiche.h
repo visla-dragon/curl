@@ -1,5 +1,5 @@
-#ifndef HEADER_CURL_VQUIC_QUICHE_H
-#define HEADER_CURL_VQUIC_QUICHE_H
+#ifndef HEADER_CURL_VQUIC_CURL_QUICHE_H
+#define HEADER_CURL_VQUIC_CURL_QUICHE_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -47,4 +47,4 @@ bool Curl_conn_is_quiche(const struct Curl_easy *data,
 
 #endif
 
-#endif /* HEADER_CURL_VQUIC_QUICHE_H */
+#endif /* HEADER_CURL_VQUIC_CURL_QUICHE_H */
