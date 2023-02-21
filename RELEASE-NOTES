@@ -1,10 +1,10 @@
-curl and libcurl 7.88.1
+curl and libcurl 8.0.0
 
  Public curl releases:         214
  Command line options:         250
  curl_easy_setopt() options:   302
  Public functions in libcurl:  91
- Contributors:                 2814
+ Contributors:                 2818
 
 This release includes the following changes:
 
@@ -12,8 +12,11 @@ This release includes the following changes:
 
 This release includes the following bugfixes:
 
- o runtests: fix "uninitialized value $port" [1]
- o tests: make sure gnuserv-tls has SRP support before using it [2]
+ o cookie: parse without sscanf()
+ o lib517: verify time stamps without leading zeroes plus some more
+ o parsedate: parse strings without using sscanf() [2]
+ o parsedate: replace sscanf( for time stamp parsing [1]
+ o tests: HTTP server fixups [3]
 
 This release includes the following known bugs:
 
@@ -31,10 +34,11 @@ Planned upcoming removals include:
 This release would not have looked like this without help, code, reports and
 advice from friends like these:
 
-  Daniel Stenberg, fundawang on github, Kevin Ryan
-  (3 contributors)
+  Daniel Stenberg, Matt Jolly
+  (2 contributors)
 
 References to bug reports and discussions on issues:
 
- [1] = https://curl.se/bug/?i=10518
- [2] = https://curl.se/bug/?i=10522
+ [1] = https://curl.se/bug/?i=10547
+ [2] = https://curl.se/bug/?i=10547
+ [3] = https://curl.se/bug/?i=10568

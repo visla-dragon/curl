@@ -1170,14 +1170,14 @@ ConnectionExists(struct Curl_easy *data,
             continue;
           }
         }
+      }
 
-        if(!Curl_conn_is_connected(check, FIRSTSOCKET)) {
-          foundPendingCandidate = TRUE;
-          /* Don't pick a connection that hasn't connected yet */
-          infof(data, "Connection #%ld isn't open enough, can't reuse",
-                check->connection_id);
-          continue;
-        }
+      if(!Curl_conn_is_connected(check, FIRSTSOCKET)) {
+        foundPendingCandidate = TRUE;
+        /* Don't pick a connection that hasn't connected yet */
+        infof(data, "Connection #%ld isn't open enough, can't reuse",
+              check->connection_id);
+        continue;
       }
 
 #ifdef USE_UNIX_SOCKETS
@@ -3962,7 +3962,6 @@ CURLcode Curl_init_do(struct Curl_easy *data, struct connectdata *conn)
     data->state.httpreq = HTTPREQ_HEAD;
 
   k->start = Curl_now(); /* start time */
-  k->now = k->start;   /* current time is now */
   k->header = TRUE; /* assume header */
   k->bytecount = 0;
   k->ignorebody = FALSE;
